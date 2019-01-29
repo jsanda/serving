@@ -161,7 +161,7 @@ func main() {
 	cr := activatorhandler.NewConcurrencyReporter(podName, reqChan, time.NewTicker(time.Second).C, statChan)
 	go cr.Run(stopCh)
 
-	ah := &activatorhandler.FilteringHandler{
+	ah := autoscaler.ProbingHandler(&activatorhandler.FilteringHandler{
 		NextHandler: activatorhandler.NewRequestEventHandler(reqChan,
 			&activatorhandler.EnforceMaxContentLengthHandler{
 				MaxContentLengthBytes: maxUploadBytes,
@@ -173,7 +173,9 @@ func main() {
 				},
 			},
 		),
-	}
+	},activator.ActivatorProbeHeader, "activator",
+	)
+
 
 	// Watch the logging config map and dynamically update logging levels.
 	configMapWatcher := configmap.NewInformedWatcher(kubeClient, system.Namespace())
